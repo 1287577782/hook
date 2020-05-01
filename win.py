@@ -201,6 +201,41 @@ def get_position():
     user32.GetCursorPos(byref(point))
     return (point.x, point.y)
 
+
+###需要将部分东西抽离，实现与平台无关
+class mouse():
+    def __init__(self):
+        super().__init__()
+
+    def __delattr__(self, name):
+        return super().__delattr__(name)
+    
+    def get_position(self):
+        point=POINT()
+        user32.GetCursorPos(byref(point))
+        return (point.x,point.y)
+    
+    def press(self,button):
+        button, data = _translate_button(button)
+        code = simulated_mouse_codes[(DOWN, button)]
+        user32.mouse_event(code, 0, 0, data, 0)
+
+    def release(self,button):
+        button, data = _translate_button(button)
+        code = simulated_mouse_codes[(UP, button)]
+        user32.mouse_event(code, 0, 0, data, 0)
+
+    def wheel(self,delta):
+        code = simulated_mouse_codes[(WHEEL, VERTICAL)]
+        user32.mouse_event(code, 0, 0, int(delta * WHEEL_DELTA), 0)
+        
+    def move_to(self,x,y):
+        user32.SetCursorPos(int(x), int(y))
+    
+    def move_relative(self,x,y):
+        user32.mouse_event(MOUSEEVENTF_MOVE, int(x), int(y), 0, 0)
+
+
 if __name__ == '__main__':
     def p(e):
         print(e)
